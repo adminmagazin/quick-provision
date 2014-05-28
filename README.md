@@ -4,19 +4,19 @@ This script downloads an Ubuntu 14.04 cloud image, resizes the image, writes ano
 
 ##Features
 * customize Ubuntu cloud image and provision it as a KVM virtual machine
-* just basic functionality, if you want more, go ahead, fork and send pull request
 * uses SPICE for VM display
+* just basic functionality, if you want more, go ahead, fork and send pull request
 
 ##Requires
 * Linux KVM, virsh (libvirt-bin), cloud-localds (cloud-image-utils), wget
     
 ##Usage
 
-Just run the script with as root or with sudo.   
+Just run the script as root or with sudo.   
 
 ##Todo
 * command line arguments, such as root password, force overwrite 
-* more options for VM creation
+* more options for VM creation, such as disk size, RAM, ...
 * support other Linux distributions
 
 ##License 
