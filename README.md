@@ -15,8 +15,6 @@ This script downloads an Ubuntu 14.04 cloud image, resizes the image, writes ano
 Just run the script as root or with sudo.   
 
 ##Todo
-* command line arguments, such as force overwrite
-* check for existing VM 
 * more options for VM creation, such as disk size, RAM, ...
 * support other Linux distributions
 

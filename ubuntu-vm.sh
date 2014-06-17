@@ -15,37 +15,59 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-echo "please enter password for VM"
-read -s password1
-echo "please re-enter password for verification"
-read -s password2
-if [[ "$password1" != "$password2" ]]; then
-   echo "passwords do not match, please start over." 1>&2
+if [ ! -d "$IMGDIR" ]; then
+   echo "$IMGDIR does not exist."
    exit 1
 fi
+cd "$IMGDIR"
 
+# check for existing VM
+virsh list --all | grep -q "$VMNAME"
+if [ $? -eq 0 ]; then
+   read -p "VM $VMNAME exists. delete? (y/n)" confirm
+   confirm=$(echo $confirm | tr 'a-z' 'A-Z')
+   if [[ "$confirm" != "Y" ]]; then
+       echo "exiting" 1>&2
+       exit 1
+   else
+      virsh destroy "$VMNAME" 
+      virsh undefine "$VMNAME" 
+      rm "$VMIMG"
+   fi
+fi
+
+# check for existing VM image separately
+if [ -e "$VMIMG" ]; then
+   read -p "$IMGDIR/$VMNAME exists. delete? (y/n)" confirm
+   confirm=$(echo $confirm | tr 'a-z' 'A-Z')
+   if [[ "$confirm" != "Y" ]]; then
+       echo "exiting" 1>&2
+       exit 1
+   else
+      rm "$VMIMG"
+   fi
+fi
+
+# check for cloud-localds tool
 which cloud-localds > /dev/null
 if [ $? -ne 0 ]; then
   echo "cloud-localds not found. Please install cloud-image-tools."
-  exit
+  exit 1
 fi
 
-if [ ! -d "$IMGDIR" ]; then
-   echo "$IMGDIR does not exist."
-   exit
-fi
-
-cd "$IMGDIR"
-
-if [ -e "$VMIMG" ]; then
-   echo "$IMGDIR/$VMIMG exists, exiting."
-   exit
-fi
-
+# check for cloud image tool
 if [ -e "$CLOUDIMG" ]; then
    echo "$CLOUDIMG exists, skipping download"
 else 
    wget https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
+fi
+
+# password for "ubuntu" user in VM
+read -sp "please enter password for VM:" password1 ; echo
+read -sp "please re-enter password for verification:" password2 ; echo
+if [[ "$password1" != "$password2" ]]; then
+   echo "passwords do not match, please start over." 1>&2
+   exit 1
 fi
 
 echo "converting and resizing image..."
