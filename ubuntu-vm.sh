@@ -9,18 +9,18 @@ USERIMG=trusty-userdata.img
 VMNAME=trusty1
 RAM=524288 # memory in Kbytes
 
+# check for root permissions
+if [[ $EUID -ne 0 ]]; then
+   echo "this script must be run as root." 1>&2
+   exit 1
+fi
+
 echo "please enter password for VM"
 read -s password1
 echo "please re-enter password for verification"
 read -s password2
 if [[ "$password1" != "$password2" ]]; then
    echo "passwords do not match, please start over." 1>&2
-   exit 1
-fi
-
-# check for root permissions
-if [[ $EUID -ne 0 ]]; then
-   echo "this script must be run as root." 1>&2
    exit 1
 fi
 
@@ -109,4 +109,4 @@ virsh start "$VMNAME"
 
 echo "done."
 echo "you can now log into your VM with the username 'ubuntu' and the password you entered."
-cd -
+cd $OLDPWD
