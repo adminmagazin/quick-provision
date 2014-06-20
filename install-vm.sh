@@ -3,11 +3,35 @@
 # Get Ubuntu 14.04 cloud image, create qemu image and user data image, create VM
 
 IMGDIR=/var/lib/libvirt/images
-CLOUDIMG=trusty-server-cloudimg-amd64-disk1.img
-VMIMG=trusty-cloudimg-amd64.img
-USERIMG=trusty-userdata.img
-VMNAME=trusty1
 RAM=524288 # memory in Kbytes
+
+setup_images() {
+   VMIMG=$1-cloudimg.img
+   USERIMG=$1-userdata.img
+}
+
+setup_distro() {
+   if [[ "$1" == "F" ]]; then
+      CLOUDIMG=Fedora-x86_64-20-20140407-sda.qcow2
+      IMGURL=http://download.fedoraproject.org/pub/fedora/linux/updates/20/Images/x86_64/$CLOUDIMG
+      USERNAME=fedora
+   elif [[ "$1" == "U" ]]; then
+      CLOUDIMG=trusty-server-cloudimg-amd64-disk1.img
+      IMGURL=https://cloud-images.ubuntu.com/trusty/current/$CLOUDIMG
+      USERNAME=ubuntu
+   else
+      echo "no valid distro data found" 2>&1
+      exit 1
+   fi
+}
+
+cleanup() {
+   cd $OLDPWD
+   reset
+   exit 1
+}
+
+trap 'cleanup' 2
 
 # check for root permissions
 if [[ $EUID -ne 0 ]]; then
@@ -20,6 +44,23 @@ if [ ! -d "$IMGDIR" ]; then
    exit 1
 fi
 cd "$IMGDIR"
+
+DISTRO=""
+while [ "$DISTRO" == "" ]; do
+   read -p "which distro do you want do use (f)edora/(u)buntu?" reply
+   reply=$(echo $reply | tr 'a-z' 'A-Z')
+   if [[ "$reply" != "F" && "$reply" != "U" ]]; then
+      continue
+   else
+      DISTRO=$reply
+   fi
+done
+
+setup_distro $DISTRO
+
+read -p "please enter name for vm:" VMNAME 
+
+setup_images $VMNAME
 
 # check for existing VM
 virsh list --all | grep -q "$VMNAME"
@@ -59,7 +100,7 @@ fi
 if [ -e "$CLOUDIMG" ]; then
    echo "$CLOUDIMG exists, skipping download"
 else 
-   wget https://cloud-images.ubuntu.com/trusty/current/trusty-server-cloudimg-amd64-disk1.img
+   wget $IMGURL
 fi
 
 # password for "ubuntu" user in VM
@@ -130,5 +171,5 @@ echo "starting vm..."
 virsh start "$VMNAME"
 
 echo "done."
-echo "you can now log into your VM with the username 'ubuntu' and the password you entered."
+echo "you can now log into your VM with the username '$USERNAME' and the password you entered."
 cd $OLDPWD
