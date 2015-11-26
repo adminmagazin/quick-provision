@@ -1,6 +1,6 @@
 #Linux VM Quick Provisioning
 
-This script downloads an Linux cloud image, resizes the image, writes another image with user data, then creates a KVM virtual machine and boots it.
+This script downloads a Linux cloud image, resizes it, writes another image with user data, then creates a KVM virtual machine and boots it.
 
 ##Features
 * customize Ubuntu or Fedora cloud image and provision it as a KVM virtual machine
